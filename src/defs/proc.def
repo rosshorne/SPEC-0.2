@@ -87,7 +87,12 @@ simplify (bang P) Q :=
   simplify P R /\
   _if (R = zero)
       (Q = zero)
-      (Q = (bang R)).
+      (Q = (bang R));
+
+simplify (taup P) Q := 
+  simplify P R /\
+  Q = (taup R) % RH: Tau transition added, similar to outp.
+.
 
 
 Define print_proc : proc -> prop, print_nu_proc : proc -> prop,
@@ -152,7 +157,11 @@ print_proc (let M (x\y\ P x y)) :=
     print_proc_aux (P (bn x) (bn y)) ; 
 
 print_proc (bang P) :=
-  printstr "!" /\ printstr "(" /\ print_proc P /\ printstr ")".
+  printstr "!" /\ printstr "(" /\ print_proc P /\ printstr ")";
+
+print_proc (taup P) := % RH: Added tau.
+  printstr "tau." /\ printstr "(" /\ print_proc P /\ printstr ")".
+
  
 Define print_agent : agent -> prop by 
 print_agent (con M P) :=
@@ -184,7 +193,6 @@ copyproc L (par P Q) (par S T) :=
 copyproc L (plus P Q) (plus S T) :=
   copyproc L P S /\ copyproc L Q T ; 
 
-
 copyproc L (nu x\P x) (nu x\Q x) :=
   nabla x, copyproc L (P (bn x)) (Q x) ; 
 
@@ -205,7 +213,9 @@ copyproc L (let M (x\y\P x y)) (let N (x\y\ Q x y)) :=
   copyterm L M N /\
   nabla x y, copyproc L (P (bn x) (bn y)) (Q x y) ; 
 
-copyproc L (bang P) (bang Q) := copyproc L P Q. 
+copyproc L (taup P) (taup Q) := copyproc L P Q ; % RH: Added for tau.
+
+copyproc L (bang P) (bang Q) := copyproc L P Q.
 
 Define copyagent : list sub_pair -> agent -> agent -> prop by 
 copyagent L (abs x\ P x) (abs x\ Q x) := 
@@ -287,4 +297,6 @@ c_oneCon Vs P Cont :=
   concretize FSub /\ 
   _abstract (contAgent A Q FSub) abscont_var Cont1 /\ 
   apply_var Cont1 Cont.
+
+
 

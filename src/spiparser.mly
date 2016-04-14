@@ -37,7 +37,8 @@
   let plus_op = constid (pos 0) "plus"
   let nu_op = constid (pos 0) "nu" 
   let in_op = constid (pos 0) "inp" 
-  let out_op = constid (pos 0) "outp" 
+  let out_op = constid (pos 0) "outp"
+  let tau_op = constid (pos 0) "taup"   (* RH: Added tau *)
   let match_op = constid (pos 0) "match" 
   let mismatch_op = constid (pos 0) "mismatch" 
   let case_op = constid (pos 0) "case"
@@ -149,6 +150,8 @@ pexp:
 | cpref IN pexp { let a,(b,c) = $1 in app case_op [a;c;lambda b $3] }
 | lpref IN pexp { let t,(v1,v2) = $1 in app let_op [t; lambda v1 (lambda v2 $3)] }
 | BANG pexp { app bang_op [$2] }
+| TAU DOT pexp { app tau_op [$3] }
+| TAU { app tau_op [zero_op] }
 | apexp { $1 }
 /* | TAU { tau_op } */	/* Add tau */
 

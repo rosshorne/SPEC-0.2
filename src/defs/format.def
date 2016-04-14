@@ -71,7 +71,9 @@ norm (let M (x\y\ P x y)) (let N (x\y\ Q x y)) :=
   simp_cp M N /\ 
   nabla x y, norm (P (bn x) (bn y)) (Q x y) ; 
 norm (bang P) (bang Q) := norm P Q ; 
+norm (taup P) (taup Q) := norm P Q ;  % RH: Added for tau.
 
 norm_list nil nil ; 
 norm_list (cons X L) (cons Y R) :=
   norm X Y /\ norm_list L R.
+

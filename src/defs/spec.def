@@ -92,6 +92,7 @@ expand_defs (case M N (x\ P x)) (case U V (x\ Q x)) :=
 expand_defs (let M (x\y\P x y)) (let N (x\y\ Q x y)) := 
   simp_cp M N /\
   nabla x y, expand_defs (P (bn x) (bn y)) (Q x y) ; 
+expand_defs (taup P) (taup Q) := expand_defs P Q;  % RH: Added for tau.
 expand_defs (bang P) (bang Q) := expand_defs P Q.
 
 Kind oprop type.
@@ -175,6 +176,8 @@ free_names_proc (let M P) Acc L :=
   free_names_term M Acc Acc1 /\
   nabla x y, 
   free_names_proc (P (bn x) (bn y)) Acc1 L ; 
+free_names_proc (taup P) Acc L := % RH: Added for tau.
+  free_names_proc P Acc L;
 free_names_proc (bang P) Acc L := 
   free_names_proc P Acc L.
 

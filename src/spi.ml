@@ -38,8 +38,10 @@ struct
 
   let proc_inp = Term.atom "inp"
   let proc_outp = Term.atom "outp"
+  let proc_taup = Term.atom "taup" (* RH: Added tau *)
   let bt_in = Term.atom "in"
   let bt_out = Term.atom "out"
+  let bt_tau = Term.atom "tau" (* RH: Added tau *)
   let msg_pr = Term.atom "pr"
   let msg_en = Term.atom "en"
   let msg_ct = Term.atom "ct"
