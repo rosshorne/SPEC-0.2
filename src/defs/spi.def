@@ -55,6 +55,7 @@ Type mac 	(tm -> tm -> tm). % mac function
 % process constructors
 Kind proc type.
 Type zero proc.
+Type done proc. % RH: added for done.
 Type par proc -> proc -> proc.
 Type nu  (tm -> proc) -> proc.
 Type match tm -> tm -> proc -> proc.
@@ -139,6 +140,8 @@ by
   one (par P Q) tau R := exists x, oneCon P x C /\ oneAbs Q x F /\ appCon C F R ; 
   one (plus P Q) tau R := one P tau R ;
   one (plus P Q) tau R := one Q tau R ; 
+  one (plus done P) tau done; % RH: Added for avoiding deadlock.
+  one (plus P done) tau done; % RH: Added for avoiding deadlock.
   one (nu P) tau (nu R) := nabla x, one (P x) tau (R x) ;
   one (bang P) tau (par (bang P) Q) := one P tau Q ;
   one P tau R := red_proc P Q /\ one Q tau R ;
@@ -178,15 +181,15 @@ Define progressing_one : proc -> action -> proc -> prop,
        progressing_oneAbs : proc -> action -> agent -> prop,   
        progressing_oneCon : proc -> action -> agent -> prop    
 by
-  progressing_one Q tau P := taus Q QQ /\ one QQ tau PP /\ taus PP P /\ printstr "\n progress.";
-  progressing_oneAbs Q A P := taus Q QQ /\ oneAbs QQ A PP /\ (tausAbs PP P) ;  
+  progressing_one Q tau P := taus Q QQ /\ one QQ tau PP /\ taus PP P /\ printstr "\n progress." ;
+  progressing_oneAbs Q A P := taus Q QQ /\ oneAbs QQ A PP /\ (tausAbs PP P) ;
   progressing_oneCon Q A (con M P) := taus Q QQ /\ oneCon QQ A (con M PP) /\ taus PP P.
 
 % Checks whether a process has terminated successfully or deadlocked.
 
 Define tick : proc -> prop by
-  tick zero;
-  tick (par zero P) := tick P;
-  tick (par P zero) := tick P;
+  tick done;
+  tick (par done P) := tick P;
+  tick (par P done) := tick P;
   tick (nu P) := nabla x, tick (P x);
   tick (bang P) := tick P.

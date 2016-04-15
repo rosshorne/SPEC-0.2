@@ -43,11 +43,15 @@ rule token = parse
 | "!" { BANG }
 | "#" { SHARP }
 | "0" { ZERO }
+| "1" { DONE }
 | "." { DOT }
 | "=" { EQ }
 | "~=" { NEQ }
 | ":=" { DEF }
 | "bisim" { BISIM }
+| "pbisim" { PBISIM }
+| "sim" { SIM }
+| "psim" { PSIM }
 | "," { COMMA }
 | ";" { SEMICOLON }
 | "nu" { NU }

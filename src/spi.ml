@@ -20,9 +20,11 @@
 module Process =
 struct
   let bisim = Term.atom "bisim"
+  let bisim = Term.atom "pbisim"  (* RH: added for progressing open bisimulation *)
 
   let agent_def = Term.atom "agent_def"
   let bisim_str = "bisim"
+  let pbisim_str = "pbisim" (* RH: added for progressing open bisimulation *)
   let show_bisim = Term.atom "show_bisim"
   let save_bisim = Term.atom "save_bisim" 
   let save_bisim_latex = Term.atom "bisim2latex"

@@ -24,7 +24,7 @@ Kind tm_type type.
 
 Type nm_type	tm_type.
 Type ct_type 	tm_type.
-Type var_type 	tm_type. 
+Type var_type 	tm_type.
 Type pr_type	tm_type.
 Type en_type	tm_type.
 % Asymmetric Encryption

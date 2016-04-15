@@ -73,7 +73,8 @@ expand_defs (def A L) P :=
          false
       ) ; 
 
-expand_defs zero zero ; 
+expand_defs zero zero ;
+expand_defs done done ; % RH: added for one.
 expand_defs (par P Q) (par S T) := 
   expand_defs P S /\ expand_defs Q T ; 
 expand_defs (plus P Q) (plus S T) := 
@@ -147,7 +148,8 @@ free_names_args (cons X L) Acc R :=
 Define free_names_proc : proc -> list tm -> list tm -> prop
 by 
 free_names_proc (def A Args) Acc L :=  free_names_args Args Acc L ; 
-free_names_proc zero Acc Acc ; 
+free_names_proc zero Acc Acc ;
+free_names_proc done Acc Acc ;  % RH: Added for one.
 free_names_proc (par P Q) Acc L :=
   free_names_proc P Acc L1 /\ 
   free_names_proc Q L1 L ; 
@@ -198,13 +200,48 @@ check_def A :=
         printstr " in the definition of " /\ print A /\ printstr "\n" 
       ).
 
-Define  bisim_def : proc -> proc -> prop
-by 
-bisim_def P Q :=
+Define  bisim_def : list bt_pair -> def_body -> def_body -> prop by 
+bisim_def H (defAbs x\A x) (defAbs x\B x) :=
+  nabla x, exists H1,
+   append H (cons (in (var x) (var x)) nil) H1 /\ 
+   bisim_def H1 (A (var x)) (B (var x)) ;
+bisim_def H (defProc P) (defProc Q) :=
   expand_defs P R /\ 
   expand_defs Q T /\
-  printstr "Checking bisimilarity for: \n" /\ 
+  printstr "Checking strong bisimilarity for: \n" /\ 
   print_proc R /\ printstr "\n" /\
   printstr " and \n" /\ 
   print_proc T /\ printstr "\n" /\
-  bisim nil R T.
+  bisim H R T.
+
+% RH: Added for open progressing bisimulation.
+
+Define  pbisim_def : list bt_pair -> def_body -> def_body -> prop by 
+pbisim_def H (defAbs x\A x) (defAbs x\B x) :=
+  nabla x, exists H1,
+   append H (cons (in (var x) (var x)) nil) H1 /\ 
+   pbisim_def H1 (A (var x)) (B (var x)) ;
+pbisim_def H (defProc P) (defProc Q) :=
+  expand_defs P R /\ 
+  expand_defs Q T /\
+  printstr "Checking progressing bisimilarity for: \n" /\ 
+  print_proc R /\ printstr "\n" /\
+  printstr " and \n" /\ 
+  print_proc T /\ printstr "\n" /\
+  pbisim H R T.
+
+% RH: Added for open progressing simulation.
+
+Define  psim_def : list bt_pair -> def_body -> def_body -> prop by 
+psim_def H (defAbs x\A x) (defAbs x\B x) :=
+  nabla x, exists H1,
+   append H (cons (in (var x) (var x)) nil) H1 /\ 
+   psim_def H1 (A (var x)) (B (var x)) ;
+psim_def H (defProc P) (defProc Q) :=
+  expand_defs P R /\ 
+  expand_defs Q T /\
+  printstr "Checking progressing similarity for: \n" /\ 
+  print_proc R /\ printstr "\n" /\
+  printstr " and \n" /\ 
+  print_proc T /\ printstr "\n" /\
+  psim H R T.

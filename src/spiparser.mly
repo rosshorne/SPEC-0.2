@@ -26,13 +26,15 @@
       (Parsing.rhs_start_pos i, Parsing.rhs_end_pos i)
 
   let qstring p s = Input.pre_qstring p s 
-  let constid p s = Input.pre_predconstid p s   
+  let constid p s = Input.pre_predconstid p s
+  let freeid p s = Input.pre_freeid p s   (* RH: Added in attempt to fix free variable bugs. *)   
 
   let nil_op = constid (pos 0) "nil" 
   let cons_op = constid (pos 0) "cons"
   let def_op =  constid (pos 0) "def" 
   let ct_op = constid (pos 0) "ct"
   let zero_op = constid (pos 0) "zero"
+  let done_op = constid (pos 0) "done"
   let par_op = constid (pos 0) "par" 
   let plus_op = constid (pos 0) "plus"
   let nu_op = constid (pos 0) "nu" 
@@ -73,26 +75,37 @@
 
   let change_freeids t =
     let vs = Input.get_freeids t in
-    let sub = List.map (fun s -> (s,app ct_op [qstring (pos 0) s]) ) vs in 
-     Input.pre_freeidsubst sub t 
+    let sub = List.map (fun s -> (s,app ct_op [qstring (pos 0) s]) ) vs in (* builds substitution mapping each string s to a Bedwyr term (ct s) from spi.def. *)
+     Input.pre_freeidsubst sub t   (* RH: Bug possibly here, since pre_freeidsubst in input.ml is textual and not cature avoiding! Update: Not the problem since error exists without pre_freeidsubst *)
+
+
+  let abstract_ids t vars =
+    let proc = constid (pos 0) "defProc" in 
+    let abs  = constid (pos 0) "defAbs" in 
+    List.fold_right (fun v tm -> app abs [Input.pre_lambda (pos 0) [pos 0, v, Input.Typing.fresh_typaram ()] tm]) vars   (* RH: Builds lambda-abstraction in Bedwyr for each v in vars wrapped with defAbs from proc.def. *)
+               (app proc [t])   (* RH: Base case of fold_right building a process before vars are abstracted.*)
 
   let mkdef a b = 
     let agentname,vars = a in 
     let proc = constid (pos 0) "defProc" in 
     let abs  = constid (pos 0) "defAbs" in 
     let agent_def = constid (pos 0) "agent_def" in 
-    let b = List.fold_right (fun v t -> app abs [Input.pre_lambda (pos 0) [v] t]) vars 
-                 (app proc [b]) in 
+    let b = List.fold_right (fun v t -> app abs [Input.pre_lambda (pos 0) [v] t]) vars   (* RH: Builds lambda-abstraction in Bedwyr for each v in vars wrapped with defAbs from proc.def. *)
+                 (app proc [b]) in   (* RH: Base case of fold_right building a process before vars are abstracted. *)
     let d = change_freeids (app agent_def [(qstring (pos 0) agentname); b]) in 
         Spi.Def (agentname,List.length vars,(pos 0,d,Input.pre_true (pos 0)))   
 
-  let mkquery a b = 
-    let q = app (constid (pos 0) "bisim_def") [a;b] in 
-    Spi.Query (pos 0, change_freeids q)
+  let mkquery bisim_fun a b = 
+    let vars = Input.get_freeids (app par_op [a;b]) in
+    let a' = abstract_ids a vars in
+    let b' = abstract_ids b vars in 
+    let q = app (constid (pos 0) bisim_fun) [nil_op; a';b'] in 
+    Spi.Query (pos 0, q)
+
 %}
 
-%token LPAREN RPAREN LBRAK RBRAK LANGLE RANGLE LBRAC RBRAC SEMICOLON BISIM
-%token ZERO DOT EQ NEQ COMMA NU PAR PLUS ENC HASH AENC PUB SIGN VK MAC TAU
+%token LPAREN RPAREN LBRAK RBRAK LANGLE RANGLE LBRAC RBRAC SEMICOLON BISIM SIM PBISIM PSIM
+%token ZERO DONE DOT EQ NEQ COMMA NU PAR PLUS ENC HASH AENC PUB SIGN VK MAC TAU
 %token DEF CASE LET OF IN SHARP BANG
 %token <string> ID
 %token <string> AID
@@ -114,7 +127,9 @@ input_def:
 | head DEF pexp SEMICOLON { mkdef $1 $3  }
 input_query:
 | head DEF pexp SEMICOLON { mkdef $1 $3  }
-| BISIM LPAREN pexp COMMA pexp RPAREN SEMICOLON  { mkquery $3 $5 }
+| BISIM LPAREN pexp COMMA pexp RPAREN SEMICOLON  { mkquery "bisim_def" $3 $5 }
+| SIM LPAREN pexp COMMA pexp RPAREN SEMICOLON  { mkquery "psim_def" $3 $5 }
+| PBISIM LPAREN pexp COMMA pexp RPAREN SEMICOLON  { mkquery "pbisim_def" $3 $5 }
 | SHARP ID SEMICOLON { Spi.Command ($2, [])}
 | SHARP ID STRING SEMICOLON { Spi.Command ($2, [$3]) }
 | SHARP ID AID SEMICOLON { Spi.Command ($2, [$3] ) }
@@ -138,6 +153,7 @@ head:
 pexp:
 | agent { $1 }
 | ZERO { zero_op }
+| DONE { done_op }
 | outpref { let a,b = $1 in app out_op [a;b;zero_op] }
 | inpref { let a,b = $1 in app in_op [a ; lambda b zero_op] }
 | pexp PAR pexp { app par_op [$1;$3] }
@@ -153,7 +169,6 @@ pexp:
 | TAU DOT pexp { app tau_op [$3] }
 | TAU { app tau_op [zero_op] }
 | apexp { $1 }
-/* | TAU { tau_op } */	/* Add tau */
 
 apexp:
 | LPAREN pexp RPAREN { $2 }
