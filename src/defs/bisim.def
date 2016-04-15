@@ -354,7 +354,7 @@ bisimAgent H Thy (abs x\P x) (abs x\Q x) :=
   nabla x, exists H1,
    append H (cons (in (var x) (var x)) nil) H1 /\ 
    % print_bisim H1 (P (var x)) (Q (var x)) /\ 
-   bisim_upto H1 (P (var x)) (Q (var x)) ;  % RH: Updates bitrace with variable.
+   bisim_upto H1 (P (var x)) (Q (var x)) ;  % RH: Updates bitrace with input variable.
 
 bisimAgent H Thy (con M P) (con N Q) := 
     decomp_bt_pair Thy nil M N L /\ 

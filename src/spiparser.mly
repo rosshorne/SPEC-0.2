@@ -86,8 +86,8 @@
                (app proc [tm])   (* RH: Base case of fold_right building a process before vars are abstracted.*)
 
   let mkdef a b = 
-    let agentname,vars = a in 
-    let vars = Input.get_freeids b in
+    let agentname,vars = a in (* RH: Can now ignore vars on this line, since vars are defined by default. Maybe better to check all vars are declared as in MWB. *)
+    let vars = List.sort (fun x y -> if x < y then 0 else 1) (Input.get_freeids b) in
     let proc = constid (pos 0) "defProc" in 
     let abs  = constid (pos 0) "defAbs" in 
     let agent_def = constid (pos 0) "agent_def" in 
@@ -95,7 +95,8 @@
                  (app proc [b]) in   (* RH: Base case of fold_right building a process before vars are abstracted. *)
     let d = (* change_freeids *)
               (app agent_def [(qstring (pos 0) agentname); b]) in 
-        Spi.Def (agentname,List.length vars,(pos 0,d,Input.pre_true (pos 0)))   
+    Format.printf "Free variables: %s.\n" (String.concat " " vars) ;
+    Spi.Def (agentname,List.length vars,(pos 0,d,Input.pre_true (pos 0)))   
 
   let mkquery bisim_fun a b = (* RH: bisim_fun is the string corresponding to the function in spec.def. *)
     let vars = Input.get_freeids (app par_op [a;b]) in
