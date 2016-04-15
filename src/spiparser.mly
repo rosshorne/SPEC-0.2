@@ -79,23 +79,25 @@
      Input.pre_freeidsubst sub t   (* RH: Bug possibly here, since pre_freeidsubst in input.ml is textual and not cature avoiding! Update: Not the problem since error exists without pre_freeidsubst *)
 
 
-  let abstract_ids t vars =
+  let abstract_ids tm vars =
     let proc = constid (pos 0) "defProc" in 
     let abs  = constid (pos 0) "defAbs" in 
-    List.fold_right (fun v tm -> app abs [Input.pre_lambda (pos 0) [pos 0, v, Input.Typing.fresh_typaram ()] tm]) vars   (* RH: Builds lambda-abstraction in Bedwyr for each v in vars wrapped with defAbs from proc.def. *)
-               (app proc [t])   (* RH: Base case of fold_right building a process before vars are abstracted.*)
+    List.fold_right (fun v t -> app abs [Input.pre_lambda (pos 0) [pos 0, v, Input.Typing.fresh_typaram ()] t]) vars   (* RH: Builds lambda-abstraction in Bedwyr for each v in vars wrapped with defAbs from proc.def. *)
+               (app proc [tm])   (* RH: Base case of fold_right building a process before vars are abstracted.*)
 
   let mkdef a b = 
     let agentname,vars = a in 
+    let vars = Input.get_freeids b in
     let proc = constid (pos 0) "defProc" in 
     let abs  = constid (pos 0) "defAbs" in 
     let agent_def = constid (pos 0) "agent_def" in 
-    let b = List.fold_right (fun v t -> app abs [Input.pre_lambda (pos 0) [v] t]) vars   (* RH: Builds lambda-abstraction in Bedwyr for each v in vars wrapped with defAbs from proc.def. *)
+    let b = List.fold_right (fun v t -> app abs [Input.pre_lambda (pos 0) [pos 0, v, Input.Typing.fresh_typaram ()] t]) vars   (* RH: Builds lambda-abstraction in Bedwyr for each v in vars wrapped with defAbs from proc.def. *)
                  (app proc [b]) in   (* RH: Base case of fold_right building a process before vars are abstracted. *)
-    let d = change_freeids (app agent_def [(qstring (pos 0) agentname); b]) in 
+    let d = (* change_freeids *)
+              (app agent_def [(qstring (pos 0) agentname); b]) in 
         Spi.Def (agentname,List.length vars,(pos 0,d,Input.pre_true (pos 0)))   
 
-  let mkquery bisim_fun a b = 
+  let mkquery bisim_fun a b = (* RH: bisim_fun is the string corresponding to the function in spec.def. *)
     let vars = Input.get_freeids (app par_op [a;b]) in
     let a' = abstract_ids a vars in
     let b' = abstract_ids b vars in 
@@ -232,7 +234,7 @@ prpat:
 | LANGLE ID COMMA ID RANGLE { ((pos 0,$2,Input.Typing.fresh_typaram()), (pos 0,$4,Input.Typing.fresh_typaram()) ) }
 
 texp: 
-| name_id { $1 }
+| name_id { $1 } 
 | LANGLE texp COMMA ltexp RANGLE { mkpairs ($2::$4)  }
 | ENC LPAREN texp COMMA texp RPAREN { app en_op [$3;$5] }
 | AENC LPAREN texp COMMA texp RPAREN { app aen_op [$3;$5] } /* Asymmetric Encryption */
