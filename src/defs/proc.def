@@ -290,7 +290,7 @@ c_oneAbs Vs P Cont  :=
   flex_subst Vs FSub /\ 
   copyproc FSub P P1 /\ 
   oneAbs P1 A Q /\ 
-  concretize FSub /\  
+  concretize FSub /\
   _abstract (contAgent A Q FSub) abscont_var Cont1 /\
   apply_var Cont1 Cont.
 

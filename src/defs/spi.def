@@ -170,9 +170,9 @@ by
 Define taus : proc -> proc -> prop,
        tausAbs : agent -> agent -> prop
 by
-  taus P QQ := one P tau Q /\ taus Q QQ /\ printstr "\n extra ";
+  taus P QQ := one P tau Q /\ taus Q QQ ; 
   taus P P;
-  tausAbs (abs A) (abs BB) := (nabla x, one (A x) tau (B x)) /\ tausAbs (abs B) (abs BB)  /\ printstr "\n extra after abstraction";
+  tausAbs (abs A) (abs BB) := (nabla x, one (A x) tau (B x)) /\ tausAbs (abs B) (abs BB) ;
   tausAbs A A.
 
 % RH: progressing_one differs from weak_one since tau actions must be matched by at least one tau action.
@@ -181,7 +181,7 @@ Define progressing_one : proc -> action -> proc -> prop,
        progressing_oneAbs : proc -> action -> agent -> prop,   
        progressing_oneCon : proc -> action -> agent -> prop    
 by
-  progressing_one Q tau P := taus Q QQ /\ one QQ tau PP /\ taus PP P /\ printstr "\n progress." ;
+  progressing_one Q tau P := taus Q QQ /\ one QQ tau PP /\ taus PP P ; 
   progressing_oneAbs Q A P := taus Q QQ /\ oneAbs QQ A PP /\ (tausAbs PP P) ;
   progressing_oneCon Q A (con M P) := taus Q QQ /\ oneCon QQ A (con M PP) /\ taus PP P.
 
