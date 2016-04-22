@@ -28,8 +28,10 @@ Type defProc proc -> def_body.
 Type defAbs  (tm -> def_body) -> def_body. 
 
 Define simplify : proc -> proc -> prop by 
+
 simplify zero zero ;
 simplify done done ;   % added for one.
+
 simplify (par P1 P2) Q := 
   simplify P1 Q1 /\ 
   simplify P2 Q2 /\ 

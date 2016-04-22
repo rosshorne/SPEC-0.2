@@ -47,7 +47,8 @@ collapse_plus (plus P Q) R :=
 Define norm : proc -> proc -> prop, 
        norm_list : list proc -> list proc -> prop
 by 
-norm zero zero ; 
+norm zero zero ;
+norm done done ; % RH: Added for done.  
 norm (par P Q) R :=
   collapse_par (par P Q) L /\ 
   norm_list L M /\ 

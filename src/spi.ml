@@ -100,7 +100,7 @@ let find_spi_name name =
     true
   with
   | Not_found -> false
-   
+
 let find_spi_sig name arity =
   try 
     ignore (List.find (fun (a,b) -> (a = name) & (b = arity)) !spi_sig ) ;
@@ -110,14 +110,15 @@ let find_spi_sig name arity =
 
 let bisim_size table =
     let i = ref 0 in
+    Printf.printf "!Got this far!";  
       Table.iter_fun table 
         (fun t tag -> 
+           Printf.printf "!but not this far!";  
            match tag with
            | Table.Proved -> i := (!i + 1) 
            | _ -> ()
         ) ;
       !i
-
 
 let save_bisim_raw fout table = 
   let fmt = Format.formatter_of_out_channel fout in

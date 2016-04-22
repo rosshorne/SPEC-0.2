@@ -55,8 +55,6 @@
   let sign_op = constid (pos 0) "sign"
   let hash_op = constid (pos 0) "hs"
   let mac_op  = constid (pos 0) "mac"
-  (* Add tau *)
-  (* let tau_op = constid (pos 0) "tau" *)
 
   let app s t = Input.pre_app (pos 0) s t 
   let lambda v t = Input.pre_lambda (pos 0) [v] t 
@@ -75,8 +73,8 @@
 
   let change_freeids t =
     let vs = Input.get_freeids t in
-    let sub = List.map (fun s -> (s,app ct_op [qstring (pos 0) s]) ) vs in (* builds substitution mapping each string s to a Bedwyr term (ct s) from spi.def. *)
-     Input.pre_freeidsubst sub t   (* RH: Bug possibly here, since pre_freeidsubst in input.ml is textual and not cature avoiding! Update: Not the problem since error exists without pre_freeidsubst *)
+    let sub = List.map (fun s -> (s,app ct_op [qstring (pos 0) s]) ) vs in
+    Input.pre_freeidsubst sub t  
 
 
   let abstract_ids tm vars =
@@ -87,13 +85,20 @@
 
   let mkdef a b = 
     let agentname,vars = a in (* RH: Can now ignore vars on this line, since vars are defined by default. Alternatively check all vars are declared as in MWB. *)
-    let vars = List.sort (fun x y -> if x < y then 0 else 1) (Input.get_freeids b) in
+    let vars = List.map (fun (x,y,z) -> y) vars in
+    let vars = List.concat [
+                 vars;
+                 List.sort (fun x y -> if x < y then 0 else 1)
+                  (List.filter (fun x -> not (List.mem x vars))
+                    (Input.get_freeids b))]
+    in
     let proc = constid (pos 0) "defProc" in 
     let abs  = constid (pos 0) "defAbs" in 
     let agent_def = constid (pos 0) "agent_def" in 
     let b = abstract_ids b vars in
     let d = (app agent_def [(qstring (pos 0) agentname); b]) in 
-    Format.printf "Free variables: %s.\n" (String.concat " " vars) ;
+    if vars != [] then
+       Format.printf "Free variable(s): %s.\n" (String.concat " " vars) ;
     Spi.Def (agentname,List.length vars,(pos 0,d,Input.pre_true (pos 0)))   
 
   let mkquery bisim_fun a b = (* RH: bisim_fun is the string corresponding to the function in spec.def. *)
@@ -204,7 +209,6 @@ nupref:
 
 cpref: 
 | CASE texp OF encpat { ($2,$4) }
-/* | CASE texp OF aencpat { ($2. $4) }  */
 
 lpref:
 | LET prpat EQ texp { ($4,$2) }
@@ -223,12 +227,6 @@ name_id:
 encpat:
 | ENC LPAREN ID COMMA texp RPAREN { ((pos 0,$3,Input.Typing.fresh_typaram()),$5) }
 
-/* Asymmetric Encryption - Not in use*/
-/*
-aenpat:
-| AENC LPAREN ID COMMA texp RPAREN { ((pos 0,$3,Input.Typing.fresh_typaram()),$5) }
-*/
-
 prpat:
 | LANGLE ID COMMA ID RANGLE { ((pos 0,$2,Input.Typing.fresh_typaram()), (pos 0,$4,Input.Typing.fresh_typaram()) ) }
 
@@ -236,10 +234,10 @@ texp:
 | name_id { $1 } 
 | LANGLE texp COMMA ltexp RANGLE { mkpairs ($2::$4)  }
 | ENC LPAREN texp COMMA texp RPAREN { app en_op [$3;$5] }
-| AENC LPAREN texp COMMA texp RPAREN { app aen_op [$3;$5] } /* Asymmetric Encryption */
-| PUB LPAREN texp RPAREN { app pub_op [$3] } /* Asymmetric Encryption */
+| AENC LPAREN texp COMMA texp RPAREN { app aen_op [$3;$5] }	/* Asymmetric Encryption */
+| PUB LPAREN texp RPAREN { app pub_op [$3] }			/* Asymmetric Encryption */
 | SIGN LPAREN texp COMMA texp RPAREN { app sign_op [$3; $5] }	/* Sign, Hash, Mac */
-| HASH LPAREN texp RPAREN { app hash_op [$3] }	/* Sign, Hash, Mac */
+| HASH LPAREN texp RPAREN { app hash_op [$3] }			/* Sign, Hash, Mac */
 | MAC LPAREN texp COMMA texp RPAREN {app mac_op [$3; $5] }	/* Sign, Hash, Mac */
 | atexp { $1 }
 
